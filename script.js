@@ -8,6 +8,7 @@ window.onload = () => {
         cell:  undefined,  // 2D array, object:
         // .bomb  : # of adjacent bombs (or -1 if bomb)
         // .state : {"cover", "reveal", "flag", "hover"}
+        // stupid comment
     };
     const DOM = {};
     const ID = ["select", "face", "board", "game", "dash", "time"];
