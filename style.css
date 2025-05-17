@@ -1,6 +1,6 @@
 body { background: #BDBDBD; }
-select { width: 100px; }
 div { position: absolute; }
+#select { width: 100px; }
 #game { top: 35px; left: 5px; border: 3px outset #DDD; }
 #dash { top: 8px; left: 8px; height: 36px; border: 3px inset #DDD; }
 #face { top: 5px; }
