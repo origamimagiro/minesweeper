@@ -40,7 +40,15 @@ window.onload = () => {
     };
     document.oncontextmenu = (e) => e.preventDefault();
     DOM.select.onchange = (e) => reset(DOM, STATE);
-    make_graphics(ICONS);
+    const style = document.createElement("style");
+    style.innerHTML = Object.keys(ICONS).map(k => {
+        const [uri, h, w] = img_cmap_2_dataURI_h_w(ICONS[k], COLORMAP);
+        return `.${k} {\n` +
+            `   width: ${w}px;\n` +
+            `   height: ${h}px;\n` +
+            `   background-image: url(${uri});\n}`;
+    }).join("\n");
+    document.head.appendChild(style);
     reset(DOM, STATE);
 };
 
@@ -133,7 +141,7 @@ const update_draw = (DOM, STATE) => {
                 case "wrong":  icon = (bomb < 0) ? "explode" : "wrong"; break;
                 case "reveal": icon = (bomb < 0) ? "bomb" : `t${bomb}`; break;
             }
-            DOM.cell[y][x].className = icon; 
+            DOM.cell[y][x].className = icon;
         }
     }
 };
@@ -172,7 +180,7 @@ const update_board = (DOM, STATE, e, [ex, ey]) => {
         }
         STATE.cell[ey][ex] = cell;
         update_draw(DOM, STATE);
-        return; 
+        return;
     }
     if ((STATE.state == "normal") &&
         ((type == "mouseover") || (type == "mouseout"))
@@ -238,7 +246,7 @@ const update_board = (DOM, STATE, e, [ex, ey]) => {
                             ((y_ < 0) || (ny <= y_)) ||
                             (STATE.cell[y_][x_] == "reveal")
                         ) { continue; }
-                        Q.push([x_, y_]); 
+                        Q.push([x_, y_]);
                     }
                 }
             }
@@ -263,37 +271,24 @@ const update_board = (DOM, STATE, e, [ex, ey]) => {
     update_draw(DOM, STATE);
 };
 
-const make_graphics = (imgs) => {
+const img_cmap_2_dataURI_h_w = (img, cmap) => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    const style = document.createElement("style");
-    style.innerHTML = Object.keys(imgs).map(k => {
-        const L = imgs[k].split("\n");
-        const h = L.length;
-        const w = L[0].length;
-        canvas.width = w;
-        canvas.height = h;
-        const img = ctx.createImageData(w, h);
-        const data = img.data
-        for (let y = 0; y < h; ++y) {
-            for (let x = 0; x < w; ++x) {
-                const color = ICON_COLORS[L[y][x]];
-                const i = (w*y + x) << 2;
-                for (const d of [0, 1, 2, 3]) {
-                    data[i + d] = color[d];
-                }
+    const L = img.split("\n");
+    const h = (canvas.height = L.length);
+    const w = (canvas.width = L[0].length);
+    const icon = ctx.createImageData(w, h);
+    for (let y = 0; y < h; ++y) {
+        for (let x = 0; x < w; ++x) {
+            const color = cmap[L[y][x]];
+            const i = (w*y + x) << 2;
+            for (const d of [0, 1, 2, 3]) {
+                icon.data[i + d] = color[d];
             }
         }
-        ctx.putImageData(img, 0, 0);
-        const uri = canvas.toDataURL('image/png');
-        return `\
-.${k} {
-    width: ${w}px;
-    height: ${h}px;
-    background-image: url(${uri});
-}`;
-    }).join("\n");
-    document.head.appendChild(style);
+    }
+    ctx.putImageData(icon, 0, 0);
+    return [canvas.toDataURL('image/png'), h, w];
 };
 
 const LEVELS = {  // nx  ny  nb
@@ -317,7 +312,7 @@ const COLORS = { //    R   G   B   A
     teal:           [  0,123,123,255],
 };
 
-const ICON_COLORS = {
+const COLORMAP = {
     ",": COLORS.white,
     "#": COLORS.black,
     ".": COLORS.clear,
